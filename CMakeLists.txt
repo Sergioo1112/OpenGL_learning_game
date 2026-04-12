@@ -20,7 +20,7 @@ FetchContent_MakeAvailable(glfw)
 
 # 3. CREAR EL EJECUTABLE
 # Asegúrate de que glad.c esté en la misma carpeta que este archivo .txt
-add_executable (CMakeProject1 WIN32 "CMakeProject1.cpp" "CMakeProject1.h" "glad.c")
+add_executable (CMakeProject1 "CMakeProject1.cpp" "CMakeProject1.h" "glad.c")
 
 # 4. VINCULAR TODO
 # Usamos ${OPENGL_LIBRARIES} que es la variable que rellena find_package
