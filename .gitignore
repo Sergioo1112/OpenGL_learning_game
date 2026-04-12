@@ -1,0 +1,36 @@
+# --- Visual Studio ---
+.vs/
+out/
+build/
+*.user
+*.sln
+*.vcxproj
+*.filters
+*.protores
+*.aps
+
+# --- CMake ---
+CMakeSettings.json
+CMakeUserPresets.json
+/CMakeFiles/
+/_deps/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+/install/
+
+# --- Compilación y Binarios ---
+*.exe
+*.dll
+*.lib
+*.pdb
+*.obj
+*.iobj
+*.ipdb
+*.ilk
+*.exp
+
+# --- Logs y Temporales ---
+*.log
+*.tlog
+*.lastbuildstate
