@@ -111,17 +111,21 @@ int main()
 
 
     //shaders
-    float positions[] =
+    float positions[] = //bottom left to bottom rigth
     {
-        -0.5f, -0.5f,
-        0.5f , -0.5f,
-        0.5f , 0.5f,
-
-        0.5f , 0.5f,
-        -0.5f , 0.5f,
-        -0.5f , -0.5f,
+        -0.5f, -0.5f,//0
+        0.5f , -0.5f,//1
+        0.5f , 0.5f, //2
+        -0.5f , 0.5f,//3
     };
 
+    unsigned int indices[] = //<--index buffer
+    {
+        0,1,2,
+        2,3,0
+    };
+
+    //vertex
     unsigned int buffer;
     glGenBuffers(1,&buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -129,6 +133,16 @@ int main()
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+
+    //indices
+    unsigned int ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
+
+
+
 
     ShaderProgramSource source = ParseSHader("shaders/Basic.shader");
     std::cout << "VERTEX" << std::endl;
@@ -158,7 +172,10 @@ int main()
         }
         //##################
         glClear(GL_COLOR_BUFFER_BIT);
-        glDrawArrays(GL_TRIANGLES,0,6);
+        
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        /*glDrawArrays(GL_TRIANGLES,0,6);*/
        
 
 
