@@ -123,10 +123,9 @@ int main()
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-    //ShaderProgramSource
-    
+    ShaderProgramSource shaders = ParseSHader("shaders/Basic.shader");
 
-    unsigned int shader = CreateShader(vertexShader,fragmentShader);
+    unsigned int shader = CreateShader(shaders.VertexSource,shaders.FragmentSource);
     glUseProgram(shader);
 
 
