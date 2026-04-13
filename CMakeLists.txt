@@ -22,18 +22,21 @@ FetchContent_MakeAvailable(glfw)
 # Asegúrate de que glad.c esté en la misma carpeta que este archivo .txt
 add_executable (CMakeProject1 "CMakeProject1.cpp" "CMakeProject1.h" "glad.c")
 
-# 4. VINCULAR TODO
-# Usamos ${OPENGL_LIBRARIES} que es la variable que rellena find_package
-target_link_libraries(CMakeProject1 PRIVATE glfw ${OPENGL_LIBRARIES})
 
-# Esto ayuda a que encuentre los headers de OpenGL y GLFW
+target_link_libraries(CMakeProject1 PRIVATE glfw ${OPENGL_LIBRARIES})
 target_include_directories(CMakeProject1 PRIVATE ${OPENGL_INCLUDE_DIR})
 target_link_libraries(CMakeProject1 PRIVATE glfw ${OPENGL_LIBRARIES})
-
-# ESTA LÍNEA ES LA QUE SOLUCIONA EL ERROR DE 'glad/glad.h'
-# Le dice a CMake que busque headers en la carpeta donde está este CMakeLists.txt
 target_include_directories(CMakeProject1 PRIVATE .)
-if(MSVC)
-    # Esto permite usar int main() en lugar de WinMain() aunque sea una App de Windows
-    set_target_properties(CMakeProject1 PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-endif()
+
+# Copia la carpeta de shaders al directorio donde se construye el ejecutable
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders"
+)
+
+#VV para que no salga la consola VV
+#if(MSVC)
+#    # Esto permite usar int main() en lugar de WinMain() aunque sea una App de Windows
+#    set_target_properties(CMakeProject1 PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+#endif()

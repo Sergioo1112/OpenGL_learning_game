@@ -1,10 +1,10 @@
-﻿#include <glad/glad.h>  ¡
+﻿#include <glad/glad.h>  
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
-
+#include <filesystem>
 
 struct ShaderProgramSource
 {
@@ -19,7 +19,10 @@ static ShaderProgramSource ParseSHader(const std::string& filePath)
         NONE = -1, VERTEX = 0, FRAGMENT = 1
     };
 
-    std::fstream stream(filePath);
+    std::ifstream stream(filePath);
+    //std::cout << "Directorio actual: " << std::filesystem::current_path() << std::endl;
+    if (!stream.is_open())std::cout << "ERROR: No se pudo encontrar el archivo en: " << filePath << std::endl;
+    
     std::string line;
     ShaderType type = ShaderType::NONE;
     std::stringstream ss[2];
@@ -85,80 +88,85 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
     glDeleteShader(fs);
 
     return program;
-
 }
-
-
 
 int main() 
 {
     if (!glfwInit()) return -1;
 
     GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL CMake", NULL, NULL);
-    if (!window) {
+    if (!window) 
+    {
         glfwTerminate();
         return -1;
     }
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);//<--Vsync (prevents 5.000fps into poor monitors)
-    // Cargar GLAD
+
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Falló al inicializar GLAD" << std::endl;
         return -1;
     }
 
+
+    //shaders
     float positions[] =
     {
         -0.5f, -0.5f,
-        0.0f , 0.5f,
-        0.5f , -0.5f
+        0.5f , -0.5f,
+        0.5f , 0.5f,
+
+        0.5f , 0.5f,
+        -0.5f , 0.5f,
+        -0.5f , -0.5f,
     };
 
     unsigned int buffer;
     glGenBuffers(1,&buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6*sizeof(float),positions,GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6*2*sizeof(float),positions,GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-    ShaderProgramSource shaders = ParseSHader("shaders/Basic.shader");
-
-    unsigned int shader = CreateShader(shaders.VertexSource,shaders.FragmentSource);
+    ShaderProgramSource source = ParseSHader("shaders/Basic.shader");
+    std::cout << "VERTEX" << std::endl;
+    std::cout << source.VertexSource << std::endl;
+    std::cout << "FRAGMENT" << std::endl;
+    std::cout << source.FragmentSource << std::endl;
+    unsigned int shader = CreateShader(source.VertexSource,source.FragmentSource);
     glUseProgram(shader);
-
-
 
     double lastTime = glfwGetTime();
     int nbFrames = 0;
+
     while (!glfwWindowShouldClose(window)) 
     {
-        //#################
-        //       FPS
+        //################# fps
         double currentTime = glfwGetTime();
         nbFrames++;
         // Si ha pasado más de 1 segundo, calculamos y reiniciamos
         if (currentTime - lastTime >= 1.0) {
             double msPerFrame = 1000.0 / double(nbFrames);
             // Creamos el string del título
-            // Nota: El título original era "OpenGL con CMake"
             std::string newTitle = "OpenGL CMake - FPS: " + std::to_string(nbFrames) +
                                    " (" + std::to_string(msPerFrame).substr(0, 4) + " ms)";
-            // Cambiamos el título de la ventana
+            //Change title
             glfwSetWindowTitle(window, newTitle.c_str());
             nbFrames = 0;lastTime += 1.0;
         }
         //##################
         glClear(GL_COLOR_BUFFER_BIT);
-        glDrawArrays(GL_TRIANGLES,0,3);
+        glDrawArrays(GL_TRIANGLES,0,6);
        
 
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-    }
+    }//end while
 
+    glDeleteProgram(shader);
     glfwTerminate();
     return 0;
-}
+}//end program
