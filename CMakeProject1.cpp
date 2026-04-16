@@ -6,6 +6,32 @@
 #include <sstream>
 #include <filesystem>
 
+#define ASSERT(x) if(!(x)) __debugbreak();
+
+#define GLCall(x) GlClearError();\
+    x;\
+    ASSERT(GlLogCall(#x, __FILE__, __LINE__));
+
+
+static void GlClearError() { while (glGetError() !=GL_NO_ERROR); }
+
+
+static bool GlLogCall(const char* function, const char* file, int line)
+{
+    bool noError = true;
+    while (GLenum error = glGetError())
+    {
+        std::cout << "OpenGl error: (" << error << "): "<<function
+            << " " << file << ": " <<line << std::endl;
+        noError = false;
+    }
+    return noError;
+}
+
+
+
+
+
 struct ShaderProgramSource
 {
     std::string VertexSource;
@@ -145,10 +171,6 @@ int main()
 
 
     ShaderProgramSource source = ParseSHader("shaders/Basic.shader");
-    std::cout << "VERTEX" << std::endl;
-    std::cout << source.VertexSource << std::endl;
-    std::cout << "FRAGMENT" << std::endl;
-    std::cout << source.FragmentSource << std::endl;
     unsigned int shader = CreateShader(source.VertexSource,source.FragmentSource);
     glUseProgram(shader);
 
@@ -174,10 +196,10 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-        /*glDrawArrays(GL_TRIANGLES,0,6);*/
-       
 
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
+       
+        
 
         glfwSwapBuffers(window);
         glfwPollEvents();
