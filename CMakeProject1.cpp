@@ -12,7 +12,6 @@
     x;\
     ASSERT(GlLogCall(#x, __FILE__, __LINE__));
 
-
 static void GlClearError() { while (glGetError() !=GL_NO_ERROR); }
 
 
