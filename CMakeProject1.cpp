@@ -165,16 +165,19 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
-
-
-
-
     ShaderProgramSource source = ParseSHader("shaders/Basic.shader");
     unsigned int shader = CreateShader(source.VertexSource,source.FragmentSource);
     glUseProgram(shader);
+    
+    GLCall(int location = glGetUniformLocation(shader, "u_color"));
+    ASSERT(location != 1);
+    GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f));//Uniform actúa como un puente entre la cpu y gpu(en este caso cambio de color)
 
     double lastTime = glfwGetTime();
     int nbFrames = 0;
+
+    float r = 0.0f;
+    float increment = 0.01f;
 
     while (!glfwWindowShouldClose(window)) 
     {
@@ -195,10 +198,14 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         
 
-
-        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
-       
+        GLCall(glUniform4f(location,r, 0.3f, r, 1.0f));
+        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
         
+        if (r > 1.0f)increment = -0.05f;
+        else if (r < 0.0f)increment = 0.05f;
+
+        r += increment;
+            
 
         glfwSwapBuffers(window);
         glfwPollEvents();
