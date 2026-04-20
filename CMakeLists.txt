@@ -20,7 +20,7 @@ FetchContent_MakeAvailable(glfw)
 
 # 3. CREAR EL EJECUTABLE
 # Asegúrate de que glad.c esté en la misma carpeta que este archivo .txt
-add_executable (CMakeProject1 "CMakeProject1.cpp" "CMakeProject1.h" "glad.c")
+add_executable (CMakeProject1 "src/CMakeProject1.cpp" "CMakeProject1.h" "glad.c"  "src/Renderer.h" "src/Renderer.cpp" "src/VertexBuffer.h" "src/VertexBuffer.cpp")
 
 
 target_link_libraries(CMakeProject1 PRIVATE glfw ${OPENGL_LIBRARIES})

@@ -5,30 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
-
-#define ASSERT(x) if(!(x)) __debugbreak();
-
-#define GLCall(x) GlClearError();\
-    x;\
-    ASSERT(GlLogCall(#x, __FILE__, __LINE__));
-
-static void GlClearError() { while (glGetError() !=GL_NO_ERROR); }
-
-
-static bool GlLogCall(const char* function, const char* file, int line)
-{
-    bool noError = true;
-    while (GLenum error = glGetError())
-    {
-        std::cout << "OpenGl error: (" << error << "): "<<function
-            << " " << file << ": " <<line << std::endl;
-        noError = false;
-    }
-    return noError;
-}
-
-
-
+#include "Renderer.h"
 
 
 struct ShaderProgramSource
@@ -119,6 +96,11 @@ int main()
 {
     if (!glfwInit()) return -1;
 
+    //setting a opengl window v3.3, setting profile to core
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+    
     GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL CMake", NULL, NULL);
     if (!window) 
     {
@@ -127,13 +109,13 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
+
     glfwSwapInterval(1);//<--Vsync (prevents 5.000fps into poor monitors)
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Falló al inicializar GLAD" << std::endl;
         return -1;
     }
-
 
     //shaders
     float positions[] = //bottom left to bottom rigth
@@ -150,14 +132,19 @@ int main()
         2,3,0
     };
 
-    //vertex
+    //Vertex Array Object: Vertex configuration atributes
+    unsigned int vao;
+    GLCall(glGenVertexArrays(1, &vao));
+    GLCall(glBindVertexArray(vao));
+
+    //bind vertex
     unsigned int buffer;
     glGenBuffers(1,&buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glBufferData(GL_ARRAY_BUFFER, 6*2*sizeof(float),positions,GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);//specify what are we passing
 
     //indices
     unsigned int ibo;
@@ -165,17 +152,27 @@ int main()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
+    //shader
     ShaderProgramSource source = ParseSHader("shaders/Basic.shader");
     unsigned int shader = CreateShader(source.VertexSource,source.FragmentSource);
     glUseProgram(shader);
     
+    //uniform
     GLCall(int location = glGetUniformLocation(shader, "u_color"));
     ASSERT(location != 1);
     GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f));//Uniform actúa como un puente entre la cpu y gpu(en este caso cambio de color)
 
+    //fps
     double lastTime = glfwGetTime();
     int nbFrames = 0;
 
+    //unbind everything
+    GLCall(glBindVertexArray(0));
+    glUseProgram(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    //color change
     float r = 0.0f;
     float increment = 0.01f;
 
@@ -185,20 +182,24 @@ int main()
         double currentTime = glfwGetTime();
         nbFrames++;
         // Si ha pasado más de 1 segundo, calculamos y reiniciamos
-        if (currentTime - lastTime >= 1.0) {
-            double msPerFrame = 1000.0 / double(nbFrames);
-            // Creamos el string del título
-            std::string newTitle = "OpenGL CMake - FPS: " + std::to_string(nbFrames) +
-                                   " (" + std::to_string(msPerFrame).substr(0, 4) + " ms)";
+        if (currentTime - lastTime >= 1.0) 
+        {
+            //title string
+            std::string newTitle = "OpenGL CMake - FPS: " + std::to_string(nbFrames);
             //Change title
             glfwSetWindowTitle(window, newTitle.c_str());
             nbFrames = 0;lastTime += 1.0;
         }
         //##################
-        glClear(GL_COLOR_BUFFER_BIT);
-        
 
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glUseProgram(shader);
         GLCall(glUniform4f(location,r, 0.3f, r, 1.0f));
+
+        GLCall(glBindVertexArray(vao));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
         GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
         
         if (r > 1.0f)increment = -0.05f;
