@@ -18,10 +18,22 @@ set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 FetchContent_MakeAvailable(glfw)
 
-# 3. CREAR EL EJECUTABLE
-# Asegúrate de que glad.c esté en la misma carpeta que este archivo .txt
-add_executable (CMakeProject1 "src/CMakeProject1.cpp" "CMakeProject1.h" "glad.c"  "src/Renderer.h" "src/Renderer.cpp" "src/VertexBuffer.h" "src/VertexBuffer.cpp")
+# LINKEAR EJECUTABLES
+add_executable(CMakeProject1
+    "src/CMakeProject1.cpp"
+    "CMakeProject1.h"
 
+    "glad.c"
+
+    "src/Renderer.h"
+    "src/Renderer.cpp"
+
+    "src/VertexBuffer.h"
+    "src/VertexBuffer.cpp"
+
+    "src/IndexBuffer.h"     # 👈 AÑADE ESTO
+    "src/IndexBuffer.cpp"
+)
 
 target_link_libraries(CMakeProject1 PRIVATE glfw ${OPENGL_LIBRARIES})
 target_include_directories(CMakeProject1 PRIVATE ${OPENGL_INCLUDE_DIR})
@@ -31,8 +43,8 @@ target_include_directories(CMakeProject1 PRIVATE .)
 # Copia la carpeta de shaders al directorio donde se construye el ejecutable
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_CURRENT_SOURCE_DIR}/shaders"
-    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders"
+    "${CMAKE_CURRENT_SOURCE_DIR}/res/shaders"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/res/shaders"
 )
 
 #VV para que no salga la consola VV

@@ -5,8 +5,10 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
-#include "Renderer.h"
 
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 struct ShaderProgramSource
 {
@@ -65,7 +67,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
     {
         int length;
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length*sizeof(char));
+        char* message = (char*)_malloca(length*sizeof(char));
         glGetShaderInfoLog(id, length, &length, message);
         std::cout << "Failed to compile"<< (type==GL_VERTEX_SHADER ? "vertex" : "fragment") << "shader: " << message << std::endl;
 
@@ -137,29 +139,23 @@ int main()
     GLCall(glGenVertexArrays(1, &vao));
     GLCall(glBindVertexArray(vao));
 
-    //bind vertex
-    unsigned int buffer;
-    glGenBuffers(1,&buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6*2*sizeof(float),positions,GL_STATIC_DRAW);
+    //create vertex
+    VertexBuffer vb(positions, 6 * 2 * sizeof(float));
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);//specify what are we passing
 
-    //indices
-    unsigned int ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+    //create index
+    IndexBuffer ib(indices, 6 * sizeof(unsigned int));
 
     //shader
-    ShaderProgramSource source = ParseSHader("shaders/Basic.shader");
+    ShaderProgramSource source = ParseSHader("res/shaders/Basic.shader");
     unsigned int shader = CreateShader(source.VertexSource,source.FragmentSource);
     glUseProgram(shader);
     
     //uniform
     GLCall(int location = glGetUniformLocation(shader, "u_color"));
-    ASSERT(location != 1);
+    ASSERT(location != -1);
     GLCall(glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f));//Uniform actúa como un puente entre la cpu y gpu(en este caso cambio de color)
 
     //fps
@@ -198,7 +194,7 @@ int main()
         GLCall(glUniform4f(location,r, 0.3f, r, 1.0f));
 
         GLCall(glBindVertexArray(vao));
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+        ib.Bind();
 
         GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
         
